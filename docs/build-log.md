@@ -57,3 +57,21 @@ built, the commands run, test/coverage numbers, eval scorecard deltas, and open 
 - Live extraction against `https://app.demo.test` needs a Magento integration access token in `.env` (`MAGENTO_ACCESS_TOKEN`); unit tests never require it (recorded fixtures / mock transport).
 
 **Gate:** STOP for review — Phase 1 foundation complete. Next: Phase 2 (rules + Sanity/Attribute/Duplicate agents + LangGraph Supervisor + SQLite checkpointer).
+
+---
+
+## Phase 2 — Rule agents + Supervisor + checkpointing — 2026-06-25
+
+**Built (TDD, 100% core)**
+- `rules/` — sanity (zero price/categories, special>regular, enabled+zero-stock) and attribute (missing required, placeholders, missing images/weight) rule sets + `base.issue` helper.
+- `agents/` — `SanityAgent`, `AttributeAgent` (rules-first via `RuleAgent`), `DuplicateAgent` (exact text + near via `SimilarityIndex`), `registry.build_agents`.
+- `providers/similarity.py` — `InMemorySimilarityIndex` (token-cosine, zero-dep default) + protocol for a ChromaDB drop-in.
+- `graph/supervisor.py` — native `Supervisor` runs requested checks, accumulates issues, checkpoints; skips completed agents on resume.
+- `storage/checkpoint.py` — `AuditCheckpoint` (SQLite) GraphState persistence.
+- `reporting.py` — `build_report` + `render_markdown`. CLI `audit` command → `report.json` + `report.md`.
+- ADR-002 (native orchestrator + pluggable similarity).
+
+**Results**
+- `make verify` → **green**, **78 passed**, **100.00%** coverage, trace ✓ (8 done requirements).
+- End-to-end: seeded 2-product cache → `catalogguard audit --checks sanity,attributes,duplicates` → 6 issues, JSON+md reports written.
+- Crash-resume proven by `test_checkpoint_resume.py` (agent crashes mid-audit; resume skips completed agent, no duplicate issues).

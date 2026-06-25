@@ -20,6 +20,7 @@ class AuditConfig(BaseModel):
     store_url: str
     checks: list[str] = Field(default_factory=list)
     similarity_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
+    required_attributes: list[str] = Field(default_factory=list)
     max_products: int | None = None
 
     def should_run(self, dimension: Dimension) -> bool:

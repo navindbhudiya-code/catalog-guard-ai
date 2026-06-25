@@ -14,11 +14,11 @@ source spec.
 |--------|-------------|-----------|-------|------|-----|--------|
 | R-STATE | Typed shared state: Product, Issue, FixProposal, AuditReport, GraphState | `src/catalogguard/models/` | `tests/unit/test_models.py` | — | ADR-000 | done |
 | R-EXTRACT | Magento REST client (auth, pagination, rate-limit backoff, retry) + ExtractorAgent → SQLite cache | `src/catalogguard/magento_client/`, `src/catalogguard/agents/extractor.py` | `tests/unit/test_magento_client.py`, `tests/unit/test_extractor.py` | cost/latency | ADR-000 | done |
-| R-SANITY | Category/price/stock rule checks (pure rules, no LLM) | `src/catalogguard/rules/`, `src/catalogguard/agents/sanity.py` | `tests/unit/test_rules_sanity.py` | precision/recall | — | planned |
-| R-ATTR | Missing/malformed attribute validation (rules + LLM) | `src/catalogguard/agents/attribute.py` | `tests/unit/test_attribute.py` | precision/recall | — | planned |
-| R-DUP | Duplicate / near-duplicate detection via ChromaDB embeddings | `src/catalogguard/agents/duplicate.py` | `tests/unit/test_duplicate.py` | precision/recall | — | planned |
-| R-SUPERVISOR | LangGraph StateGraph + Supervisor selects agents from audit config | `src/catalogguard/graph/` | `tests/unit/test_graph.py` | — | — | planned |
-| R-CHECKPOINT | Resumable audit via LangGraph checkpointer + SQLite | `src/catalogguard/graph/`, `src/catalogguard/storage/` | `tests/unit/test_checkpoint_resume.py` | — | — | planned |
+| R-SANITY | Category/price/stock rule checks (pure rules, no LLM) | `src/catalogguard/rules/`, `src/catalogguard/agents/sanity.py` | `tests/unit/test_rules_sanity.py` | precision/recall | — | done |
+| R-ATTR | Missing/malformed attribute validation (rules + LLM) | `src/catalogguard/agents/attribute.py` | `tests/unit/test_attribute.py` | precision/recall | — | done |
+| R-DUP | Duplicate / near-duplicate detection via ChromaDB embeddings | `src/catalogguard/agents/duplicate.py` | `tests/unit/test_duplicate.py` | precision/recall | — | done |
+| R-SUPERVISOR | LangGraph StateGraph + Supervisor selects agents from audit config | `src/catalogguard/graph/` | `tests/unit/test_graph.py` | — | — | done |
+| R-CHECKPOINT | Resumable audit via LangGraph checkpointer + SQLite | `src/catalogguard/graph/`, `src/catalogguard/storage/` | `tests/unit/test_checkpoint_resume.py` | — | — | done |
 | R-CONTENT | LLM-scored description quality + proposed rewrites (structured output) | `src/catalogguard/agents/content.py` | `tests/unit/test_content.py` | Ragas faithfulness | — | planned |
 | R-SEO | Meta/url/alt-text audit + generated fixes (structured output) | `src/catalogguard/agents/seo.py` | `tests/unit/test_seo.py` | precision/recall | — | planned |
 | R-PROVIDER | LLM provider abstraction Claude ↔ Bedrock (config flag) + LangSmith tracing | `src/catalogguard/providers/` | `tests/unit/test_providers.py` | — | — | planned |
