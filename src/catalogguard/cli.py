@@ -12,16 +12,21 @@ from pathlib import Path
 
 import typer
 
+from catalogguard.agents.apply import ApplyAgent
 from catalogguard.agents.extractor import ExtractorAgent
+from catalogguard.agents.fix_proposal import FixProposalAgent
 from catalogguard.agents.registry import build_agents
 from catalogguard.config import load_settings
 from catalogguard.graph.supervisor import Supervisor
 from catalogguard.logging import configure_logging
 from catalogguard.magento_client import MagentoClient
-from catalogguard.models import AuditConfig, GraphState
+from catalogguard.models import AuditConfig, GraphState, ProposalStatus
+from catalogguard.providers.factory import get_provider
 from catalogguard.reporting import build_report, render_markdown
+from catalogguard.storage.approval import ApprovalStore
 from catalogguard.storage.cache import ProductCache
 from catalogguard.storage.checkpoint import AuditCheckpoint
+from catalogguard.storage.rollback import RollbackJournal
 
 app = typer.Typer(help="CatalogGuard AI — Magento catalog auditor.")
 
@@ -119,3 +124,105 @@ def audit(
     finally:
         cache.close()
         checkpoint.close()
+
+
+@app.command()
+def propose(
+    checks: str = typer.Option("sanity,attributes,duplicates,seo", help="Checks to audit."),
+    db: str = typer.Option("catalogguard.sqlite", help="SQLite product cache."),
+    approvals_db: str = typer.Option("approvals.sqlite", help="Approval queue store."),
+) -> None:
+    """Audit, generate fix proposals, and load them into the review queue."""
+    _load_dotenv()
+    settings = load_settings()
+    run = uuid.uuid4().hex[:8]
+    logger = configure_logging(run, "logs")
+    aliases = {"attributes": "attribute", "duplicates": "duplicate"}
+    selected = [aliases.get(c.strip(), c.strip()) for c in checks.split(",") if c.strip()]
+
+    cache = ProductCache(db)
+    store = ApprovalStore(approvals_db)
+    try:
+        products = cache.all()
+        config = AuditConfig(store_url=settings.magento_base_url, checks=selected)
+        state = GraphState(config=config, products=products)
+        Supervisor(build_agents(config, selected), logger, run_id=run).run(state)
+
+        provider = get_provider(settings)
+        proposals = FixProposalAgent(config, provider).propose(state.issues, products)
+        store.save_many(proposals)
+        typer.echo(
+            f"Generated {len(proposals)} fix proposals from {len(state.issues)} issues "
+            f"into {approvals_db}. Review with `catalogguard serve`."
+        )
+    finally:
+        cache.close()
+        store.close()
+
+
+@app.command()
+def serve(
+    approvals_db: str = typer.Option("approvals.sqlite", help="Approval queue store."),
+    host: str = typer.Option("127.0.0.1"),
+    port: int = typer.Option(8000),
+) -> None:
+    """Launch the HTMX review UI over the approval queue."""
+    import uvicorn
+    from api.app import create_app
+
+    uvicorn.run(create_app(ApprovalStore(approvals_db)), host=host, port=port)
+
+
+@app.command()
+def apply(
+    approvals_db: str = typer.Option("approvals.sqlite", help="Approval queue store."),
+    journal_db: str = typer.Option("rollback.sqlite", help="Rollback journal store."),
+    batch: str | None = typer.Option(None, help="Batch id (defaults to a new one)."),
+) -> None:
+    """Apply all APPROVED fixes to the store, journaling each change."""
+    _load_dotenv()
+    settings = load_settings()
+    batch_id = batch or uuid.uuid4().hex[:8]
+
+    store = ApprovalStore(approvals_db)
+    journal = RollbackJournal(journal_db)
+    client = MagentoClient(
+        settings.magento_base_url,
+        settings.magento_access_token,
+        verify_ssl=settings.magento_verify_ssl,
+    )
+    try:
+        approved = store.by_status(ProposalStatus.APPROVED)
+        applied = ApplyAgent(client, journal).apply(approved, batch_id=batch_id)
+        for proposal in applied:
+            store.set_status(proposal.id, ProposalStatus.APPLIED)
+        typer.echo(
+            f"Applied {len(applied)} fixes as batch {batch_id}. "
+            f"Revert with `catalogguard rollback --batch {batch_id}`."
+        )
+    finally:
+        client.close()
+        store.close()
+        journal.close()
+
+
+@app.command()
+def rollback(
+    batch: str = typer.Option(..., help="Batch id to revert."),
+    journal_db: str = typer.Option("rollback.sqlite", help="Rollback journal store."),
+) -> None:
+    """Revert a previously applied batch, restoring prior values."""
+    _load_dotenv()
+    settings = load_settings()
+    journal = RollbackJournal(journal_db)
+    client = MagentoClient(
+        settings.magento_base_url,
+        settings.magento_access_token,
+        verify_ssl=settings.magento_verify_ssl,
+    )
+    try:
+        reverted = ApplyAgent(client, journal).revert(batch)
+        typer.echo(f"Reverted {reverted} changes from batch {batch}.")
+    finally:
+        client.close()
+        journal.close()

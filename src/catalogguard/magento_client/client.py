@@ -49,7 +49,18 @@ class MagentoClient:
         self._max_attempts = max_attempts
         self._wait: wait_base = wait or wait_exponential(multiplier=0.5, max=30)
 
-    def _get(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
+    # Native Magento product fields written at the top level; everything else
+    # goes through custom_attributes.
+    _NATIVE_FIELDS = frozenset({"name", "price", "status", "visibility", "weight"})
+
+    def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         for attempt in Retrying(
             stop=stop_after_attempt(self._max_attempts),
             wait=self._wait,
@@ -57,13 +68,26 @@ class MagentoClient:
             reraise=True,
         ):
             with attempt:
-                response = self._client.get(path, params=params, headers=self._headers)
+                response = self._client.request(
+                    method, path, params=params, json=json, headers=self._headers
+                )
                 if response.status_code in _RETRYABLE_STATUS:
                     raise RetryableStatusError(response.status_code)
                 response.raise_for_status()
                 data: dict[str, Any] = response.json()
                 return data
         raise AssertionError("unreachable")  # pragma: no cover
+
+    def _get(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
+        return self._request("GET", path, params=params)
+
+    def update_field(self, sku: str, field: str, value: Any) -> None:
+        """Write a single product field back to Magento (PUT /products/{sku})."""
+        if field in self._NATIVE_FIELDS:
+            product: dict[str, Any] = {"sku": sku, field: value}
+        else:
+            product = {"sku": sku, "custom_attributes": [{"attribute_code": field, "value": value}]}
+        self._request("PUT", f"{_PRODUCTS_PATH}/{sku}", json={"product": product})
 
     def fetch_products_page(
         self, current_page: int, page_size: int

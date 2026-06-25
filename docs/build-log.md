@@ -92,3 +92,19 @@ built, the commands run, test/coverage numbers, eval scorecard deltas, and open 
 **Results**
 - `make verify` → **green**, **104 passed**, **100.00%** coverage, trace ✓ (13 done requirements).
 - Eval scorecard on synthetic catalog: **1.00 precision/recall/F1** for sanity, attribute, duplicate, seo. Baseline committed; CI runs `evals/score.py --check-baseline` as an F1 gate.
+
+---
+
+## Phase 4 — HITL review + Apply + rollback — 2026-06-25
+
+**Built (TDD, 100% core)**
+- `storage/approval.py` — `ApprovalStore` (SQLite): save/query by status, set_status, edit-then-approve, bulk-approve-by-confidence, persistence.
+- `storage/rollback.py` — `RollbackJournal` (SQLite): records previous value per change; `entries`/`mark_reverted`.
+- `agents/apply.py` — `ApplyAgent`: applies only APPROVED proposals, journals before writing, `revert(batch)` restores prior values via a `CatalogWriter` protocol.
+- `magento_client` — `update_field` (PUT) maps native fields vs custom_attributes; tested with mock transport.
+- `api/app.py` — FastAPI + HTMX review UI (table, approve/reject/edit, bulk-approve). SRI on CDN script. `[api]` extra glue; opt-in integration test.
+- CLI: `propose`, `serve`, `apply`, `rollback` close the loop.
+
+**Results**
+- `make verify` → **green**, **115 passed, 1 skipped** (integration), **100.00%** coverage, trace ✓ — **all 15 requirements done**.
+- End-to-end offline loop verified: audit → 2 proposals → approve → apply (writes generated meta title) → rollback (restores prior value).

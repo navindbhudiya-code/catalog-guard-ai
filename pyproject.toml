@@ -63,7 +63,17 @@ module = [
     "langchain.*",
     "ragas.*",
     "langsmith.*",
+    "fastapi.*",
+    "uvicorn.*",
+    "starlette.*",
 ]
+ignore_missing_imports = true
+
+# The FastAPI/HTMX app is integration-tested glue, not part of the typed core.
+[[tool.mypy.overrides]]
+module = ["api.*"]
+follow_imports = "skip"
+ignore_errors = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

@@ -95,3 +95,35 @@ def test_non_retryable_error_raises_immediately() -> None:
 def test_builds_default_client_and_closes() -> None:
     client = MagentoClient("https://app.demo.test/", "tok", verify_ssl=False)
     client.close()
+
+
+def test_update_field_puts_custom_attribute() -> None:
+    seen: dict[str, object] = {}
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        seen["method"] = request.method
+        seen["url"] = str(request.url)
+        seen["body"] = httpx.Request("PUT", request.url, content=request.content).read().decode()
+        return httpx.Response(200, json={})
+
+    client = _client(httpx.MockTransport(handle))
+    client.update_field("TS-01", "meta_title", "New Title")
+
+    assert seen["method"] == "PUT"
+    assert "/rest/V1/products/TS-01" in seen["url"]
+    assert "custom_attributes" in seen["body"]
+    assert "meta_title" in seen["body"]
+
+
+def test_update_field_puts_native_field_at_top_level() -> None:
+    seen: dict[str, str] = {}
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        seen["body"] = request.content.decode()
+        return httpx.Response(200, json={})
+
+    client = _client(httpx.MockTransport(handle))
+    client.update_field("TS-01", "price", 19.99)
+
+    assert '"price"' in seen["body"]
+    assert "custom_attributes" not in seen["body"]
