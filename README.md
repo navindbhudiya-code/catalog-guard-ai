@@ -47,8 +47,28 @@ Claude API ↔ AWS Bedrock is a config flag.
 make install                                   # py3.11 venv + dev deps
 cp .env.example .env                           # add Magento token + ANTHROPIC_API_KEY
 make verify                                    # lint + types + compile + 100% core tests
-make audit ARGS="--checks sanity,attributes,duplicates"
+
+python -m catalogguard extract                 # pull catalog -> SQLite (resumable)
+python -m catalogguard audit --checks sanity,attributes,duplicates,seo
+python -m catalogguard propose --checks seo    # generate AI fix proposals
+python -m catalogguard serve                   # review UI at http://127.0.0.1:8000
+python -m catalogguard apply --batch run-1     # apply APPROVED fixes (journaled)
+python -m catalogguard rollback --batch run-1  # one-command revert
 ```
+
+No API key? Set `CATALOGGUARD_LLM_PROVIDER=stub` to run the entire loop offline.
+Full walkthrough: **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)**.
+
+## CLI commands
+
+| Command | Purpose |
+|---------|---------|
+| `extract` | Pull the catalog into the local SQLite cache (paginated, resumable). |
+| `audit` | Scan cached products → `reports/report.{json,md}`. |
+| `propose` | Audit + generate AI fix proposals into the review queue. |
+| `serve` | FastAPI + HTMX review UI (approve / reject / edit / bulk-approve). |
+| `apply` | Write APPROVED fixes to Magento with a rollback journal. |
+| `rollback` | Restore the previous values of an applied batch. |
 
 ## Eval scorecard
 
@@ -76,8 +96,9 @@ known defects to give ground truth, and we report precision/recall/F1 per dimens
 
 ## Roadmap
 
-- v0.1 — audit + HITL review + apply/rollback (Phases 1–4)
-- v0.2 — Magento admin module (`NavinDBhudiya\CatalogGuard`)
+- ✅ **v0.1** — extract + audit (5 dimensions) + HITL review + apply/rollback + Magento admin module
+- v0.2 — ChromaDB embedding index by default, LangSmith dashboards, Packagist release
+- v0.3 — scheduled audits, Slack notifications, multi-store support
 
 ## License
 

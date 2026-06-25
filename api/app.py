@@ -133,3 +133,8 @@ def create_app(
         return render_queue()
 
     return app
+
+
+def default_app() -> FastAPI:
+    """Zero-arg factory for ``uvicorn api.app:default_app --factory``."""
+    return create_app(ApprovalStore("approvals.sqlite"))

@@ -123,3 +123,15 @@ built, the commands run, test/coverage numbers, eval scorecard deltas, and open 
 **Results**
 - `php -l` clean on all PHP files; all module XML well-formed (`xmllint`).
 - `make verify` → **green**, 115 passed + 1 integration skipped, **100.00%** core coverage, trace ✓ (15/15 requirements).
+
+---
+
+## Phase 6 — Docs + deliverable + release — 2026-06-25
+
+**Built**
+- `docker/docker-compose.yml` + `Dockerfile` (Python service + ChromaDB; `default_app` factory).
+- `docs/USER_GUIDE.md` (full workflow), polished `README.md` (commands, scorecard, roadmap), `docs/good-first-issues.md` (5 starter tasks), `docs/DELIVERABLE.md` (final report).
+
+**Final state**
+- `make verify` → **green**: 115 passed + 1 integration skipped, **100.00%** core coverage, **15/15** requirements traced.
+- Eval scorecard: 1.00 P/R/F1 (sanity/attribute/duplicate/seo). Tagged **v0.1.0**.

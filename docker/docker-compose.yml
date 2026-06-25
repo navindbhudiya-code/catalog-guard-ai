@@ -1,0 +1,31 @@
+# Demo stack: CatalogGuard Python service + ChromaDB.
+# A Magento sample-data instance is expected externally (e.g. Warden at
+# https://app.demo.test) or can be added here with markshust/docker-magento.
+services:
+  catalogguard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: catalogguard:dev
+    environment:
+      MAGENTO_BASE_URL: ${MAGENTO_BASE_URL:-https://app.demo.test}
+      MAGENTO_ACCESS_TOKEN: ${MAGENTO_ACCESS_TOKEN:-}
+      MAGENTO_VERIFY_SSL: ${MAGENTO_VERIFY_SSL:-false}
+      CATALOGGUARD_LLM_PROVIDER: ${CATALOGGUARD_LLM_PROVIDER:-stub}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports:
+      - "8000:8000"
+    command: >
+      uvicorn api.app:default_app --factory --host 0.0.0.0 --port 8000
+    depends_on:
+      - chromadb
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+
+volumes:
+  chroma-data:
