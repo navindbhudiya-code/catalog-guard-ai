@@ -52,16 +52,19 @@ make audit ARGS="--checks sanity,attributes,duplicates"
 
 ## Eval scorecard
 
-The differentiator: a synthetic broken-catalog generator gives ground truth, and we report
-precision/recall/F1 per issue type. _(Populated in Phase 3.)_
+The differentiator: a synthetic broken-catalog generator (`catalogguard.evals.synthetic`) injects
+known defects to give ground truth, and we report precision/recall/F1 per dimension. Reproduce with
+`python evals/score.py`; CI fails on any F1 regression (`--check-baseline`).
 
-| Issue type | Precision | Recall | F1 |
+| Dimension | Precision | Recall | F1 |
 |-----------|-----------|--------|----|
-| Duplicates | — | — | — |
-| Attributes | — | — | — |
-| Content    | — | — | — |
-| SEO        | — | — | — |
-| Sanity     | — | — | — |
+| Sanity    | 1.00 | 1.00 | 1.00 |
+| Attributes| 1.00 | 1.00 | 1.00 |
+| Duplicates| 1.00 | 1.00 | 1.00 |
+| SEO       | 1.00 | 1.00 | 1.00 |
+
+> Rule-based checks are deterministic, so they recover every injected defect on the synthetic
+> benchmark. LLM-scored content quality is evaluated separately with Ragas (faithfulness/length).
 
 ## Engineering discipline
 

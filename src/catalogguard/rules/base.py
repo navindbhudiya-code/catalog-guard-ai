@@ -20,8 +20,9 @@ def issue(
     *,
     field: str | None = None,
     current_value: Any | None = None,
+    detected_by: DetectedBy = DetectedBy.RULE,
 ) -> Issue:
-    """Construct a rule-detected Issue for a product."""
+    """Construct an Issue for a product (rule-detected by default)."""
     return Issue(
         sku=product.sku,
         dimension=dimension,
@@ -30,5 +31,5 @@ def issue(
         message=message,
         field=field,
         current_value=current_value,
-        detected_by=DetectedBy.RULE,
+        detected_by=detected_by,
     )

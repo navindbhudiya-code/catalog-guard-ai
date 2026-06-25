@@ -18,6 +18,7 @@ class Settings(BaseModel):
     magento_verify_ssl: bool = True
     llm_provider: str = "claude"
     llm_model: str = "claude-opus-4-8"
+    anthropic_api_key: str = ""
 
 
 def load_settings(env: Mapping[str, str] | None = None) -> Settings:
@@ -33,4 +34,5 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         magento_verify_ssl=env.get("MAGENTO_VERIFY_SSL", "true").lower() not in _FALSEY,
         llm_provider=env.get("CATALOGGUARD_LLM_PROVIDER", "claude"),
         llm_model=env.get("CATALOGGUARD_LLM_MODEL", "claude-opus-4-8"),
+        anthropic_api_key=env.get("ANTHROPIC_API_KEY", ""),
     )

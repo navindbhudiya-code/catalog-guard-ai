@@ -24,6 +24,5 @@ jobs:
       - name: Build gate (lint, types, compile, imports, 100% tests, traceability)
         run: make verify
 
-      # Phase 3+: eval F1 gate runs here against a small synthetic catalog.
-      # - name: Eval F1 gate
-      #   run: .venv/bin/python evals/score.py --check-baseline
+      - name: Eval F1 gate (synthetic catalog)
+        run: .venv/bin/python evals/score.py --check-baseline

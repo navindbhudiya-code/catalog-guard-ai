@@ -19,11 +19,11 @@ source spec.
 | R-DUP | Duplicate / near-duplicate detection via ChromaDB embeddings | `src/catalogguard/agents/duplicate.py` | `tests/unit/test_duplicate.py` | precision/recall | — | done |
 | R-SUPERVISOR | LangGraph StateGraph + Supervisor selects agents from audit config | `src/catalogguard/graph/` | `tests/unit/test_graph.py` | — | — | done |
 | R-CHECKPOINT | Resumable audit via LangGraph checkpointer + SQLite | `src/catalogguard/graph/`, `src/catalogguard/storage/` | `tests/unit/test_checkpoint_resume.py` | — | — | done |
-| R-CONTENT | LLM-scored description quality + proposed rewrites (structured output) | `src/catalogguard/agents/content.py` | `tests/unit/test_content.py` | Ragas faithfulness | — | planned |
-| R-SEO | Meta/url/alt-text audit + generated fixes (structured output) | `src/catalogguard/agents/seo.py` | `tests/unit/test_seo.py` | precision/recall | — | planned |
-| R-PROVIDER | LLM provider abstraction Claude ↔ Bedrock (config flag) + LangSmith tracing | `src/catalogguard/providers/` | `tests/unit/test_providers.py` | — | — | planned |
+| R-CONTENT | LLM-scored description quality + proposed rewrites (structured output) | `src/catalogguard/agents/content.py` | `tests/unit/test_content.py` | Ragas faithfulness | — | done |
+| R-SEO | Meta/url/alt-text audit + generated fixes (structured output) | `src/catalogguard/agents/seo.py` | `tests/unit/test_seo.py` | precision/recall | — | done |
+| R-PROVIDER | LLM provider abstraction Claude ↔ Bedrock (config flag) + LangSmith tracing | `src/catalogguard/providers/` | `tests/unit/test_providers.py` | — | — | done |
 | R-ROLLBACK | ApplyAgent writes only APPROVED fixes + rollback journal (one-command revert) | `src/catalogguard/agents/apply.py`, `src/catalogguard/storage/rollback.py` | `tests/unit/test_rollback.py` | — | — | planned |
 | R-HITL | FastAPI review API + HTMX UI, approval state in SQLite | `api/`, `ui/`, `src/catalogguard/storage/` | `tests/integration/test_review_api.py` | — | ADR-001 | planned |
-| R-EVAL | Synthetic broken-catalog generator + precision/recall/F1 scorecard + CI gate | `evals/` | `tests/unit/test_evals.py` | scorecard | — | planned |
-| R-COST | Per-agent token + wall-clock cost tracking, logged | `src/catalogguard/logging/` | `tests/unit/test_cost_ledger.py` | cost/latency | — | planned |
+| R-EVAL | Synthetic broken-catalog generator + precision/recall/F1 scorecard + CI gate | `evals/` | `tests/unit/test_evals.py` | scorecard | — | done |
+| R-COST | Per-agent token + wall-clock cost tracking, logged | `src/catalogguard/logging/` | `tests/unit/test_cost_ledger.py` | cost/latency | — | done |
 | R-TRACE | Traceability matrix is machine-checked in the build gate | `src/catalogguard/tools/trace_check.py` | `tests/unit/test_trace_check.py` | — | ADR-000 | done |

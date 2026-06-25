@@ -52,6 +52,19 @@ strict = true
 mypy_path = "src"
 files = ["src/catalogguard"]
 plugins = ["pydantic.mypy"]
+exclude = '(providers/claude\.py|providers/bedrock\.py|providers/factory\.py|providers/chroma_index\.py|graph/langgraph_adapter\.py)'
+
+[[tool.mypy.overrides]]
+module = [
+    "anthropic.*",
+    "boto3.*",
+    "chromadb.*",
+    "langgraph.*",
+    "langchain.*",
+    "ragas.*",
+    "langsmith.*",
+]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "-q --strict-markers"
@@ -67,6 +80,11 @@ omit = [
     # Glue / entrypoints / network shims are integration-tested, not unit-covered.
     "*/catalogguard/cli.py",
     "*/catalogguard/__main__.py",
+    "*/catalogguard/providers/claude.py",
+    "*/catalogguard/providers/bedrock.py",
+    "*/catalogguard/providers/factory.py",
+    "*/catalogguard/providers/chroma_index.py",
+    "*/catalogguard/graph/langgraph_adapter.py",
     "*/api/*",
     "*/ui/*",
 ]

@@ -75,3 +75,20 @@ built, the commands run, test/coverage numbers, eval scorecard deltas, and open 
 - `make verify` → **green**, **78 passed**, **100.00%** coverage, trace ✓ (8 done requirements).
 - End-to-end: seeded 2-product cache → `catalogguard audit --checks sanity,attributes,duplicates` → 6 issues, JSON+md reports written.
 - Crash-resume proven by `test_checkpoint_resume.py` (agent crashes mid-audit; resume skips completed agent, no duplicate issues).
+
+---
+
+## Phase 3 — LLM agents + provider abstraction + evals — 2026-06-25
+
+**Built (TDD, 100% core)**
+- `providers/base.py` (LLMProvider protocol) + `providers/stub.py` (offline deterministic provider). Real `claude.py`/`bedrock.py`/`factory.py` (structured tool-use) added as `[llm]`-extra glue (coverage-omitted).
+- `agents/content.py` — `ContentAgent` (LLM scoring, structured output, rules-before-LLM skip on empty description, records tokens).
+- `rules/seo.py` + `agents/seo.py` — SEO rules (missing/long meta, url key, thin content) + cross-product duplicate-meta detection.
+- `agents/fix_proposal.py` — `FixProposalAgent` consolidates fixable issues into FixProposals with confidence via the provider.
+- `logging/cost.py` — `CostLedger` (per-agent tokens + $ estimate).
+- `evals/` core — `synthetic.generate_catalog` (ground truth) + `scoring` (precision/recall/F1 + markdown scorecard). Runner `evals/score.py` (--write/--check-baseline). `graph/langgraph_adapter.py` optional StateGraph wrapper.
+- ADR-002 covers orchestration/similarity. Registry extended with `seo` + provider-gated `content`.
+
+**Results**
+- `make verify` → **green**, **104 passed**, **100.00%** coverage, trace ✓ (13 done requirements).
+- Eval scorecard on synthetic catalog: **1.00 precision/recall/F1** for sanity, attribute, duplicate, seo. Baseline committed; CI runs `evals/score.py --check-baseline` as an F1 gate.
