@@ -1,0 +1,72 @@
+<?php
+/**
+ * @var \NavinDBhudiya\CatalogGuard\Block\Adminhtml\Audit\Report $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$report = $block->getReport();
+$issues = $block->getIssues();
+?>
+<div class="catalogguard-panel">
+    <p>
+        <button id="catalogguard-run" type="button" class="action-primary"
+                data-url="<?= $escaper->escapeUrl($block->getRunUrl()) ?>">
+            <span><?= $escaper->escapeHtml(__('Run Audit')) ?></span>
+        </button>
+    </p>
+
+    <?php if (!empty($report)): ?>
+        <p>
+            <strong><?= $escaper->escapeHtml(__('Store')) ?>:</strong>
+            <?= $escaper->escapeHtml($report['store_url'] ?? '') ?>
+            &nbsp;|&nbsp;
+            <strong><?= $escaper->escapeHtml(__('Products scanned')) ?>:</strong>
+            <?= (int) ($report['products_scanned'] ?? 0) ?>
+            &nbsp;|&nbsp;
+            <strong><?= $escaper->escapeHtml(__('Issues')) ?>:</strong>
+            <?= count($issues) ?>
+        </p>
+    <?php endif; ?>
+
+    <table class="data-grid">
+        <thead>
+            <tr>
+                <th><?= $escaper->escapeHtml(__('SKU')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Dimension')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Severity')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Code')) ?></th>
+                <th><?= $escaper->escapeHtml(__('Message')) ?></th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($issues as $issue): ?>
+            <tr>
+                <td><?= $escaper->escapeHtml($issue['sku'] ?? '') ?></td>
+                <td><?= $escaper->escapeHtml($issue['dimension'] ?? '') ?></td>
+                <td><?= $escaper->escapeHtml($issue['severity'] ?? '') ?></td>
+                <td><?= $escaper->escapeHtml($issue['code'] ?? '') ?></td>
+                <td><?= $escaper->escapeHtml($issue['message'] ?? '') ?></td>
+            </tr>
+        <?php endforeach; ?>
+        <?php if (empty($issues)): ?>
+            <tr>
+                <td colspan="5"><?= $escaper->escapeHtml(__('No audit data yet. Click "Run Audit".')) ?></td>
+            </tr>
+        <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<script>
+require(['jquery'], function ($) {
+    $('#catalogguard-run').on('click', function () {
+        var url = $(this).data('url');
+        $.post(url, {form_key: window.FORM_KEY}, function (res) {
+            if (res.success) {
+                window.location.reload();
+            } else {
+                alert(res.message || 'Audit failed');
+            }
+        });
+    });
+});
+</script>

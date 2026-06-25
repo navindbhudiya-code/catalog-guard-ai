@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Catalog::catalog">
+                    <resource id="NavinDBhudiya_CatalogGuard::catalogguard"
+                              title="CatalogGuard AI" sortOrder="100">
+                        <resource id="NavinDBhudiya_CatalogGuard::audit"
+                                  title="Run Audit &amp; Review" sortOrder="10"/>
+                    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

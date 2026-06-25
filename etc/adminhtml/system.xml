@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="catalogguard" translate="label" sortOrder="200" showInDefault="1"
+                 showInWebsite="0" showInStore="0">
+            <label>CatalogGuard AI</label>
+            <tab>catalog</tab>
+            <resource>NavinDBhudiya_CatalogGuard::audit</resource>
+            <group id="service" translate="label" sortOrder="10" showInDefault="1"
+                   showInWebsite="0" showInStore="0">
+                <label>Python Service</label>
+                <field id="base_url" translate="label" type="text" sortOrder="10"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Service Base URL</label>
+                    <comment>Base URL of the CatalogGuard Python API (e.g. http://catalogguard:8000).</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

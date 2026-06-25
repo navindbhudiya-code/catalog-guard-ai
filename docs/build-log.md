@@ -108,3 +108,18 @@ built, the commands run, test/coverage numbers, eval scorecard deltas, and open 
 **Results**
 - `make verify` → **green**, **115 passed, 1 skipped** (integration), **100.00%** coverage, trace ✓ — **all 15 requirements done**.
 - End-to-end offline loop verified: audit → 2 proposals → approve → apply (writes generated meta title) → rollback (restores prior value).
+
+---
+
+## Phase 5 — Magento admin module (NavinDBhudiya\CatalogGuard) — 2026-06-25
+
+**Built**
+- Module skeleton at the repo root: `registration.php`, `composer.json` (navindbhudiya/module-catalogguard), `etc/module.xml`, `etc/acl.xml`, `etc/adminhtml/{routes.xml,menu.xml,system.xml}`, `etc/config.xml`.
+- `Model/PythonService.php` — Curl client to the Python service (`/audit`, `/report/latest`); base URL from store config.
+- `Controller/Adminhtml/Audit/Index.php` (admin page) + `Run.php` (proxies Run Audit).
+- `Block/Adminhtml/Audit/Report.php` + `view/adminhtml/templates/audit/report.phtml` — issues grid + "Run Audit" button (escaped output).
+- Python API extended with `/audit` and `/report/latest` so the module integrates against a real service.
+
+**Results**
+- `php -l` clean on all PHP files; all module XML well-formed (`xmllint`).
+- `make verify` → **green**, 115 passed + 1 integration skipped, **100.00%** core coverage, trace ✓ (15/15 requirements).
