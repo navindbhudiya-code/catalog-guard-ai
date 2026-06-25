@@ -35,4 +35,25 @@ built, the commands run, test/coverage numbers, eval scorecard deltas, and open 
 - `make verify` → **green**, **21 passed**, **100.00%** coverage.
 - Traceability: R-STATE flipped to `done`; `make trace` → 2 done requirements, all test-backed.
 
-**Gate:** STOP for review — model definitions + GraphState schema presented for sign-off before the Magento client lands (per spec "show me the models, wait for approval").
+**Gate:** STOP for review — model definitions + GraphState schema presented for sign-off before the Magento client lands (per spec "show me the models, wait for approval"). **Approved.**
+
+---
+
+## Phase 1b — Foundation: client, cache, logging, extractor (R-EXTRACT) — 2026-06-25
+
+**Built (TDD, test-first throughout)**
+- `config.py` — `Settings` + `load_settings(env)` (env-driven; fails loud on missing base URL).
+- `storage/cache.py` — `ProductCache` (SQLite): upsert/get/all/count + resumable `get_cursor`/`set_cursor` checkpoint table.
+- `logging/` — `configure_logging(run_id, dir)` → structlog JSON lines to `logs/run-<id>.jsonl`, every record stamped with `run_id`.
+- `magento_client/` — `MagentoClient`: bearer-token auth, `searchCriteria` pagination, tenacity retry/backoff on 429+5xx, fail-fast on non-retryable errors; HTTP layer injectable for hermetic tests.
+- `agents/extractor.py` — `ExtractorAgent`: page-checkpointed, resumable extraction; idempotent upserts; `max_products` cap; structured logs per page.
+- `cli.py` + `__main__.py` — `python -m catalogguard extract` (typer), `.env` loader, wires settings→client→cache→extractor.
+
+**Commands / results**
+- `make verify` → **green**: ruff ✓, mypy --strict ✓, compileall ✓, import-linter ✓, pytest **41 passed**, coverage **100.00%**, trace ✓ (3 done reqs).
+- End-to-end smoke (mocked Magento, no live store): `extract` → 1 product mapped + cached + JSON log line written with `run_id`. CLI `--help` lists the `extract` subcommand.
+
+**Notes**
+- Live extraction against `https://app.demo.test` needs a Magento integration access token in `.env` (`MAGENTO_ACCESS_TOKEN`); unit tests never require it (recorded fixtures / mock transport).
+
+**Gate:** STOP for review — Phase 1 foundation complete. Next: Phase 2 (rules + Sanity/Attribute/Duplicate agents + LangGraph Supervisor + SQLite checkpointer).
