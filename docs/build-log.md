@@ -148,3 +148,17 @@ only read flat `categories`/`images`, inflating `zero_categories`/`missing_image
 **Fix (TDD):** `Product.from_magento` now maps category_links → categories, stock_item.qty →
 stock_qty, media_gallery_entries → images. 117 tests, 100% coverage. Re-audit dropped sanity
 issues 2,189 → 149 (false `zero_categories` eliminated).
+
+---
+
+## Configurable-product rule refinements (from live audit) — 2026-06-26
+
+**Driven by the app.demo.test audit.** Variant/parent structure produced expected-but-noisy findings.
+Refinements (TDD):
+- `Product`: added `id` + `variant_child_ids` (from `extension_attributes.configurable_product_links`).
+- `zero_price`, `missing_images`, `missing_weight`: exempt composite parent types (configurable/grouped/bundle) — price/images/weight live on child variants.
+- `DuplicateAgent`: family-aware — skips exact/near duplicate pairs within the same variant family (parent↔child and sibling↔sibling).
+
+**Live re-audit impact (2,040 products):** total issues **13,948 → 5,998**; duplicates **5,447 → 27**
+(now genuine cross-product copy duplication); sanity false positives eliminated; missing_weight 192 → 44.
+123 tests, 100% core coverage, 15/15 requirements.

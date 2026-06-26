@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from catalogguard.models import AuditConfig, Dimension, Issue, Product, Severity
 
-from .base import Rule, issue
+from .base import PARENT_PRODUCT_TYPES, Rule, issue
 
 _PLACEHOLDERS = {"tbd", "n/a", "na", "todo", "xxx", "placeholder", "test"}
-# Product types that are not physically shipped and therefore need no weight.
-_WEIGHTLESS_TYPES = {"virtual", "downloadable"}
+# Product types that need no weight: non-shipped (virtual/downloadable) and
+# composite parents (configurable/grouped/bundle) whose weight lives on children.
+_WEIGHTLESS_TYPES = {"virtual", "downloadable"} | set(PARENT_PRODUCT_TYPES)
 # First-class text fields scanned for placeholder content.
 _TEXT_FIELDS = (
     "name",
@@ -86,6 +87,9 @@ def placeholder_values(product: Product, _config: AuditConfig) -> list[Issue]:
 
 
 def missing_images(product: Product, _config: AuditConfig) -> list[Issue]:
+    # Composite parents inherit imagery from their variants; don't flag them.
+    if product.type_id in PARENT_PRODUCT_TYPES:
+        return []
     if not product.images:
         return [
             issue(

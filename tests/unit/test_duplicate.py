@@ -77,6 +77,32 @@ def test_dissimilar_products_yield_no_duplicate_issues() -> None:
     assert DuplicateAgent(_config(0.85)).run(products) == []
 
 
+def test_skips_duplicates_within_a_variant_family() -> None:
+    # A configurable parent and its color/size children share copy by design.
+    products = [
+        Product(
+            id=1,
+            sku="WJ01",
+            name="Stellar Jacket",
+            description="A warm jacket.",
+            type_id="configurable",
+            variant_child_ids=[2, 3, 999],  # 999 is absent from the set
+        ),
+        Product(id=2, sku="WJ01-Blue", name="Stellar Jacket", description="A warm jacket."),
+        Product(id=3, sku="WJ01-Red", name="Stellar Jacket Red", description="A warm jacket red."),
+    ]
+    assert DuplicateAgent(_config(0.3)).run(products) == []
+
+
+def test_still_flags_exact_duplicates_across_families() -> None:
+    products = [
+        Product(id=1, sku="A", name="Same Tee", description="Same."),
+        Product(id=2, sku="B", name="Same Tee", description="Same."),
+    ]
+    codes = [i.code for i in DuplicateAgent(_config(0.5)).run(products)]
+    assert codes.count("exact_duplicate") == 2
+
+
 def test_threshold_boundary_uses_injected_index() -> None:
     class FakeIndex:
         # The A-B pair has similarity 0.80 from either direction.

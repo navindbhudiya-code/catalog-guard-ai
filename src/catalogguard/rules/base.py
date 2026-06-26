@@ -10,6 +10,10 @@ from catalogguard.models import AuditConfig, DetectedBy, Dimension, Issue, Produ
 # A rule inspects one product (with run config) and returns zero or more issues.
 Rule = Callable[[Product, AuditConfig], list[Issue]]
 
+# Composite product types whose price/images come from their child variants;
+# exempt from price=0 and missing-image checks.
+PARENT_PRODUCT_TYPES = frozenset({"configurable", "grouped", "bundle"})
+
 
 def issue(
     product: Product,

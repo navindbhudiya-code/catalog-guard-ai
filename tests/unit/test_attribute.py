@@ -71,6 +71,18 @@ def test_virtual_product_is_exempt_from_missing_weight() -> None:
     assert "missing_weight" not in _run(product)
 
 
+def test_configurable_parent_is_exempt_from_missing_images() -> None:
+    parent = Product(sku="WJ01", name="Jacket", type_id="configurable", images=[], weight=1.0)
+    assert "missing_images" not in _run(parent)
+
+
+def test_configurable_parent_is_exempt_from_missing_weight() -> None:
+    parent = Product(
+        sku="WJ01", name="Jacket", type_id="configurable", weight=None, images=["x.jpg"]
+    )
+    assert "missing_weight" not in _run(parent)
+
+
 def test_required_list_attribute_is_flagged_when_empty() -> None:
     product = Product(sku="A", name="Tee", categories=[], images=["x.jpg"], weight=1.0)
     assert "missing_required_attribute" in _run(product, required=["categories"])

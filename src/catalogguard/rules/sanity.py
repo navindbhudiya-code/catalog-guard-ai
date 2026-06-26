@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from catalogguard.models import AuditConfig, Dimension, Issue, Product, Severity
 
-from .base import Rule, issue
+from .base import PARENT_PRODUCT_TYPES, Rule, issue
 
 # Magento visibility 1 = "Not Visible Individually"; such products are exempt
 # from the "visible but out of stock" check.
@@ -12,6 +12,10 @@ _NOT_VISIBLE = 1
 
 
 def zero_price_enabled(product: Product, _config: AuditConfig) -> list[Issue]:
+    # Composite products (configurable/grouped/bundle) legitimately have price 0;
+    # the price lives on their child variants.
+    if product.type_id in PARENT_PRODUCT_TYPES:
+        return []
     if product.is_enabled and (product.price is None or product.price == 0):
         return [
             issue(

@@ -55,3 +55,10 @@ def test_does_not_flag_stock_when_not_visible_individually() -> None:
 def test_disabled_product_is_exempt_from_sanity_rules() -> None:
     product = Product(sku="A", status=2, price=0, categories=[], stock_qty=0)
     assert _codes([product]) == set()
+
+
+def test_configurable_parent_is_exempt_from_zero_price() -> None:
+    parent = Product(
+        sku="WJ01", status=1, type_id="configurable", price=0, categories=[1], stock_qty=1
+    )
+    assert "zero_price" not in _codes([parent])

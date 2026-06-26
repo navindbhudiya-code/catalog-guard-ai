@@ -123,6 +123,19 @@ def test_product_from_magento_handles_empty_extension_and_media() -> None:
     assert product.stock_qty is None
 
 
+def test_product_from_magento_maps_id_and_variant_children() -> None:
+    product = Product.from_magento(
+        {
+            "id": 1220,
+            "sku": "WJ01",
+            "type_id": "configurable",
+            "extension_attributes": {"configurable_product_links": [101, 102, 103]},
+        }
+    )
+    assert product.id == 1220
+    assert product.variant_child_ids == [101, 102, 103]
+
+
 # --- Issue ---------------------------------------------------------------
 
 

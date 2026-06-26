@@ -24,6 +24,7 @@ class Product(BaseModel):
     ``visibility`` 1-4) with convenience accessors layered on top.
     """
 
+    id: int | None = None
     sku: str = Field(min_length=1)
     name: str = ""
     description: str | None = None
@@ -42,6 +43,7 @@ class Product(BaseModel):
     meta_description: str | None = None
     meta_keyword: str | None = None
     url_key: str | None = None
+    variant_child_ids: list[int] = Field(default_factory=list)
     custom_attributes: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("price", "special_price")
@@ -67,6 +69,7 @@ class Product(BaseModel):
         fields: dict[str, Any] = {
             key: payload[key]
             for key in (
+                "id",
                 "sku",
                 "name",
                 "price",
@@ -98,6 +101,9 @@ class Product(BaseModel):
         stock_item = extension.get("stock_item")
         if stock_item is not None and "qty" in stock_item:
             fields["stock_qty"] = stock_item["qty"]
+        child_links = extension.get("configurable_product_links", [])
+        if child_links:
+            fields["variant_child_ids"] = [int(child_id) for child_id in child_links]
         media = payload.get("media_gallery_entries", [])
         if media:
             fields["images"] = [entry["file"] for entry in media]
