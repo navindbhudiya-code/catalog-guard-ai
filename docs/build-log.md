@@ -162,3 +162,14 @@ Refinements (TDD):
 **Live re-audit impact (2,040 products):** total issues **13,948 → 5,998**; duplicates **5,447 → 27**
 (now genuine cross-product copy duplication); sanity false positives eliminated; missing_weight 192 → 44.
 123 tests, 100% core coverage, 15/15 requirements.
+
+---
+
+## v0.1.1 — Embedded "Review Fixes" admin grid — 2026-06-26
+
+**Built** an in-admin review queue so merchants manage fixes without leaving Magento:
+- Python: `GET /proposals` (paged items+totalRecords) + `POST /api/proposals/{id}/approve|reject` + `/api/proposals/bulk-approve` JSON endpoints.
+- Magento UI-component grid `catalogguard_review_listing` backed by a service-fed `ReviewDataProvider` (no DB table); columns SKU/Field/Proposed Value/Confidence/Status; mass-action Approve/Reject proxying server-side to the service; "Review Fixes" menu + ACL `NavinDBhudiya_CatalogGuard::review`.
+- Approve-in-queue-only: write-back stays the explicit, journaled `apply` step.
+
+**Verified live (app.demo.test):** grid renders 4,080 proposals (204 pages) with real generated meta values; **Actions → Approve** on 2 rows → "2 fix proposal(s) approved", count 4,080 → 4,078. `make verify` green (125 tests, 100% core). Screenshots 11–12 in `.claude/CatalogGuard-demo/`.

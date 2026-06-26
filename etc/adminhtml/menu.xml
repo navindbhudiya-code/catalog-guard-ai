@@ -10,5 +10,13 @@
              parent="Magento_Catalog::catalog"
              action="catalogguard/audit/index"
              resource="NavinDBhudiya_CatalogGuard::audit"/>
+        <add id="NavinDBhudiya_CatalogGuard::review"
+             title="Review Fixes"
+             translate="title"
+             module="NavinDBhudiya_CatalogGuard"
+             sortOrder="52"
+             parent="Magento_Catalog::catalog"
+             action="catalogguard/review/index"
+             resource="NavinDBhudiya_CatalogGuard::review"/>
     </menu>
 </config>

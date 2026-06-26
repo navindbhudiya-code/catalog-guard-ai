@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">catalogguard_review_listing.catalogguard_review_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <spinner>catalogguard_review_columns</spinner>
+        <deps>
+            <dep>catalogguard_review_listing.catalogguard_review_listing_data_source</dep>
+        </deps>
+    </settings>
+
+    <dataSource name="catalogguard_review_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>NavinDBhudiya_CatalogGuard::review</aclResource>
+        <dataProvider name="catalogguard_review_listing_data_source"
+                      class="NavinDBhudiya\CatalogGuard\Model\ReviewDataProvider">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+
+    <listingToolbar name="listing_top">
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <paging name="listing_paging"/>
+        <massaction name="listing_massaction">
+            <action name="approve">
+                <settings>
+                    <confirm>
+                        <message>Approve the selected fix proposal(s)?</message>
+                        <title>Approve fixes</title>
+                    </confirm>
+                    <url path="catalogguard/review/massApprove"/>
+                    <type>approve</type>
+                    <label translate="true">Approve</label>
+                </settings>
+            </action>
+            <action name="reject">
+                <settings>
+                    <confirm>
+                        <message>Reject the selected fix proposal(s)?</message>
+                        <title>Reject fixes</title>
+                    </confirm>
+                    <url path="catalogguard/review/massReject"/>
+                    <type>reject</type>
+                    <label translate="true">Reject</label>
+                </settings>
+            </action>
+        </massaction>
+    </listingToolbar>
+
+    <columns name="catalogguard_review_columns">
+        <selectionsColumn name="ids">
+            <settings>
+                <indexField>id</indexField>
+            </settings>
+        </selectionsColumn>
+        <column name="sku">
+            <settings>
+                <label translate="true">SKU</label>
+            </settings>
+        </column>
+        <column name="field">
+            <settings>
+                <label translate="true">Field</label>
+            </settings>
+        </column>
+        <column name="proposed_value">
+            <settings>
+                <label translate="true">Proposed Value</label>
+            </settings>
+        </column>
+        <column name="confidence">
+            <settings>
+                <label translate="true">Confidence</label>
+            </settings>
+        </column>
+        <column name="status">
+            <settings>
+                <label translate="true">Status</label>
+            </settings>
+        </column>
+    </columns>
+</listing>

@@ -146,6 +146,42 @@ def create_app(
         loaded: dict[str, object] = json.loads(report_path.read_text(encoding="utf-8"))
         return loaded
 
+    # --- JSON API consumed by the Magento admin UI-component grid ---------
+
+    @app.get("/proposals")
+    def list_proposals(page: int = 1, limit: int = 50) -> dict[str, object]:
+        pending = store.by_status(ProposalStatus.PENDING)
+        start = max(0, (page - 1) * limit)
+        window = pending[start : start + limit]
+        items = [
+            {
+                "id": p.id,
+                "sku": p.sku,
+                "field": p.field,
+                "current_value": "" if p.current_value is None else str(p.current_value),
+                "proposed_value": str(p.proposed_value),
+                "confidence": round(p.confidence, 2),
+                "status": p.status.value,
+            }
+            for p in window
+        ]
+        return {"items": items, "totalRecords": len(pending)}
+
+    @app.post("/api/proposals/{proposal_id}/approve")
+    def api_approve(proposal_id: str) -> dict[str, object]:
+        store.set_status(proposal_id, ProposalStatus.APPROVED)
+        return {"success": True, "id": proposal_id, "status": "approved"}
+
+    @app.post("/api/proposals/{proposal_id}/reject")
+    def api_reject(proposal_id: str) -> dict[str, object]:
+        store.set_status(proposal_id, ProposalStatus.REJECTED)
+        return {"success": True, "id": proposal_id, "status": "rejected"}
+
+    @app.post("/api/proposals/bulk-approve")
+    def api_bulk_approve(payload: dict[str, float] = Body(default={})) -> dict[str, object]:  # noqa: B008
+        approved = store.bulk_approve(float(payload.get("min_confidence", 0.9)))
+        return {"success": True, "approved": approved}
+
     def render_queue() -> str:
         pending = store.by_status(ProposalStatus.PENDING)
         return "".join(

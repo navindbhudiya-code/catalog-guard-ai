@@ -56,6 +56,41 @@ class PythonService
     }
 
     /**
+     * Fetch a page of pending fix proposals for the review grid.
+     *
+     * @return array{items: array<int, array<string, mixed>>, totalRecords: int}
+     */
+    public function getPendingProposals(int $page = 1, int $limit = 50): array
+    {
+        $this->curl->get($this->getBaseUrl() . '/proposals?page=' . $page . '&limit=' . $limit);
+        $data = $this->decode($this->curl->getBody());
+
+        return [
+            'items' => is_array($data['items'] ?? null) ? $data['items'] : [],
+            'totalRecords' => (int) ($data['totalRecords'] ?? 0),
+        ];
+    }
+
+    public function approveProposal(string $id): bool
+    {
+        return $this->postAction('/api/proposals/' . rawurlencode($id) . '/approve');
+    }
+
+    public function rejectProposal(string $id): bool
+    {
+        return $this->postAction('/api/proposals/' . rawurlencode($id) . '/reject');
+    }
+
+    private function postAction(string $path): bool
+    {
+        $this->curl->addHeader('Content-Type', 'application/json');
+        $this->curl->post($this->getBaseUrl() . $path, '{}');
+        $data = $this->decode($this->curl->getBody());
+
+        return (bool) ($data['success'] ?? false);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function decode(string $body): array

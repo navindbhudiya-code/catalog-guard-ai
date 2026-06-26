@@ -9,6 +9,8 @@
                               title="CatalogGuard AI" sortOrder="100">
                         <resource id="NavinDBhudiya_CatalogGuard::audit"
                                   title="Run Audit &amp; Review" sortOrder="10"/>
+                        <resource id="NavinDBhudiya_CatalogGuard::review"
+                                  title="Review Fixes" sortOrder="20"/>
                     </resource>
                 </resource>
             </resource>
