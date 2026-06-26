@@ -24,3 +24,8 @@ chroma/
 
 # OS
 .DS_Store
+
+# Audit output artifacts (never commit catalog data)
+live-reports/
+reports/
+live-approvals.sqlite
