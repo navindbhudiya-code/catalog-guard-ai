@@ -90,6 +90,39 @@ def test_product_from_magento_tolerates_missing_optional_fields() -> None:
     assert product.custom_attributes == {}
 
 
+def test_product_from_magento_maps_extension_attributes_and_media() -> None:
+    payload = {
+        "sku": "WJ01",
+        "name": "Jacket",
+        "extension_attributes": {
+            "category_links": [
+                {"category_id": "23", "position": 0},
+                {"category_id": "8", "position": 1},
+            ],
+            "stock_item": {"qty": 5},
+        },
+        "media_gallery_entries": [
+            {"file": "/w/j/wj01.jpg"},
+            {"file": "/w/j/wj01-alt.jpg"},
+        ],
+    }
+
+    product = Product.from_magento(payload)
+
+    assert product.categories == [23, 8]
+    assert product.images == ["/w/j/wj01.jpg", "/w/j/wj01-alt.jpg"]
+    assert product.stock_qty == 5
+
+
+def test_product_from_magento_handles_empty_extension_and_media() -> None:
+    product = Product.from_magento(
+        {"sku": "X", "extension_attributes": {}, "media_gallery_entries": []}
+    )
+    assert product.categories == []
+    assert product.images == []
+    assert product.stock_qty is None
+
+
 # --- Issue ---------------------------------------------------------------
 
 

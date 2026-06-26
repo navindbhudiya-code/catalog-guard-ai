@@ -89,4 +89,17 @@ class Product(BaseModel):
             else:
                 extra[code] = value
 
+        # The Magento product endpoint nests categories, stock and media outside
+        # the flat field set; pull them up so the audit rules see real data.
+        extension = payload.get("extension_attributes", {})
+        category_links = extension.get("category_links", [])
+        if category_links:
+            fields["categories"] = [int(link["category_id"]) for link in category_links]
+        stock_item = extension.get("stock_item")
+        if stock_item is not None and "qty" in stock_item:
+            fields["stock_qty"] = stock_item["qty"]
+        media = payload.get("media_gallery_entries", [])
+        if media:
+            fields["images"] = [entry["file"] for entry in media]
+
         return cls(**fields, **mapped, custom_attributes=extra)

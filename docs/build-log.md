@@ -135,3 +135,16 @@ built, the commands run, test/coverage numbers, eval scorecard deltas, and open 
 **Final state**
 - `make verify` → **green**: 115 passed + 1 integration skipped, **100.00%** core coverage, **15/15** requirements traced.
 - Eval scorecard: 1.00 P/R/F1 (sanity/attribute/duplicate/seo). Tagged **v0.1.0**.
+
+---
+
+## Live run fix — Product.from_magento extension_attributes/media — 2026-06-26
+
+**Found by a real audit against app.demo.test (2,040 Luma products).** The Magento product
+endpoint nests categories under `extension_attributes.category_links`, stock under
+`extension_attributes.stock_item`, and images under `media_gallery_entries` — the v0.1 mapper
+only read flat `categories`/`images`, inflating `zero_categories`/`missing_images` to 100%.
+
+**Fix (TDD):** `Product.from_magento` now maps category_links → categories, stock_item.qty →
+stock_qty, media_gallery_entries → images. 117 tests, 100% coverage. Re-audit dropped sanity
+issues 2,189 → 149 (false `zero_categories` eliminated).
