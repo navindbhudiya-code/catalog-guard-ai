@@ -26,40 +26,84 @@ class _NullLogger:
     def info(self, event: str, **kw: object) -> None: ...
 
 
+def _confidence_badge(confidence: float) -> str:
+    level = "high" if confidence >= 0.85 else "med" if confidence >= 0.6 else "low"
+    return f'<span class="conf conf-{level}">{confidence:.2f}</span>'
+
+
 def _row(proposal_id: str, sku: str, field: str, value: str, confidence: float) -> str:
-    safe_value = escape(str(value))
+    safe_value = escape(str(value)) or '<em class="muted">— none generated —</em>'
     return f"""
     <tr id="p-{proposal_id}">
-      <td>{escape(sku)}</td>
-      <td>{escape(field)}</td>
-      <td><pre>{safe_value}</pre></td>
-      <td>{confidence:.2f}</td>
-      <td>
-        <button hx-post="/proposals/{proposal_id}/approve" hx-target="#p-{proposal_id}"
-                hx-swap="outerHTML">Approve</button>
-        <button hx-post="/proposals/{proposal_id}/reject" hx-target="#p-{proposal_id}"
-                hx-swap="outerHTML">Reject</button>
+      <td class="sku">{escape(sku)}</td>
+      <td><code>{escape(field)}</code></td>
+      <td class="proposed">{safe_value}</td>
+      <td>{_confidence_badge(confidence)}</td>
+      <td class="actions">
+        <button class="btn btn-approve" hx-post="/proposals/{proposal_id}/approve"
+                hx-target="#p-{proposal_id}" hx-swap="outerHTML">Approve</button>
+        <button class="btn btn-reject" hx-post="/proposals/{proposal_id}/reject"
+                hx-target="#p-{proposal_id}" hx-swap="outerHTML">Reject</button>
       </td>
     </tr>"""
 
 
-def _page(rows: str) -> str:
+_STYLE = """
+  :root { --bg:#f4f6fb; --card:#fff; --ink:#1f2430; --muted:#8a93a6; --line:#e6e9f0;
+          --brand:#5b4bdb; --green:#1f9d55; --red:#d64545; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  .wrap { max-width:1080px; margin:0 auto; padding:32px 24px; }
+  header h1 { margin:0 0 4px; font-size:24px; }
+  header p { margin:0 0 20px; color:var(--muted); }
+  .toolbar { display:flex; align-items:center; gap:10px; background:var(--card);
+             border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:18px; }
+  .toolbar input { width:64px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; }
+  .btn { cursor:pointer; border:0; border-radius:8px; padding:7px 14px; font-weight:600; color:#fff; }
+  .btn-bulk { background:var(--brand); }
+  .btn-approve { background:var(--green); }
+  .btn-reject { background:var(--red); margin-left:6px; }
+  table { width:100%; border-collapse:separate; border-spacing:0; background:var(--card);
+          border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  thead th { text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.04em;
+             color:var(--muted); background:#fafbfe; padding:12px 14px; border-bottom:1px solid var(--line); }
+  tbody td { padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  tbody tr:last-child td { border-bottom:0; }
+  tbody tr:hover { background:#fafbff; }
+  .sku { font-weight:700; }
+  code { background:#eef0f7; padding:2px 6px; border-radius:6px; font-size:12px; }
+  .proposed { color:#2b2f3a; }
+  .muted { color:var(--muted); }
+  .conf { font-weight:700; padding:2px 8px; border-radius:999px; font-size:12px; }
+  .conf-high { background:#e3f6ec; color:var(--green); }
+  .conf-med  { background:#fff4e0; color:#b9770b; }
+  .conf-low  { background:#fde8e8; color:var(--red); }
+  .actions { white-space:nowrap; }
+"""
+
+
+def _page(rows: str, total: int) -> str:
     return f"""<!doctype html>
-<html><head><title>CatalogGuard Review</title>
+<html><head><meta charset="utf-8"><title>CatalogGuard Review</title>
 <script src="https://unpkg.com/htmx.org@1.9.10"
         integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
-        crossorigin="anonymous"></script></head>
-<body>
-  <h1>CatalogGuard — Pending Fixes</h1>
-  <form hx-post="/bulk-approve" hx-target="#queue" hx-swap="innerHTML">
-    Approve all with confidence ≥
-    <input name="min_confidence" value="0.9" size="4"/>
-    <button type="submit">Bulk approve</button>
+        crossorigin="anonymous"></script>
+<style>{_STYLE}</style></head>
+<body><div class="wrap">
+  <header>
+    <h1>🛡️ CatalogGuard — Review Queue</h1>
+    <p>{total} pending fix proposal(s). Nothing is written to the store until approved.</p>
+  </header>
+  <form class="toolbar" hx-post="/bulk-approve" hx-target="#queue" hx-swap="innerHTML">
+    <span>Bulk approve all with confidence ≥</span>
+    <input name="min_confidence" value="0.9"/>
+    <button class="btn btn-bulk" type="submit">Approve high-confidence</button>
   </form>
-  <table border="1"><thead>
-    <tr><th>SKU</th><th>Field</th><th>Proposed</th><th>Confidence</th><th>Action</th></tr>
+  <table><thead>
+    <tr><th>SKU</th><th>Field</th><th>Proposed value</th><th>Confidence</th><th>Action</th></tr>
   </thead><tbody id="queue">{rows}</tbody></table>
-</body></html>"""
+</div></body></html>"""
 
 
 def create_app(
@@ -110,7 +154,8 @@ def create_app(
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:
-        return _page(render_queue())
+        pending = store.by_status(ProposalStatus.PENDING)
+        return _page(render_queue(), total=len(pending))
 
     @app.post("/proposals/{proposal_id}/approve", response_class=HTMLResponse)
     def approve(proposal_id: str) -> str:
