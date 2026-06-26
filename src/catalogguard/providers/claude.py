@@ -43,4 +43,5 @@ class ClaudeProvider:
                     data.setdefault("tokens", int(usage.input_tokens) + int(usage.output_tokens))
                 return data
         # Fallback: parse text as JSON if no tool block was returned.
-        return json.loads(response.content[0].text)
+        fallback: dict[str, Any] = json.loads(response.content[0].text)
+        return fallback

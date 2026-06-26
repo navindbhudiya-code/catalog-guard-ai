@@ -20,7 +20,7 @@ class ApprovalStore:
     """Persists fix proposals and their approval state."""
 
     def __init__(self, path: str | Path = ":memory:") -> None:
-        self._conn = sqlite3.connect(str(path))
+        self._conn = sqlite3.connect(str(path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(_SCHEMA)
         self._conn.commit()

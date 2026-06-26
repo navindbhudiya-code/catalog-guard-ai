@@ -22,7 +22,7 @@ dependencies = [
 # Heavy/optional runtime deps land in their phase; kept separate so the core
 # test suite stays fast and hermetic.
 llm = ["anthropic>=0.40", "langgraph>=0.2", "langchain>=0.3", "chromadb>=0.5"]
-api = ["fastapi>=0.110", "uvicorn>=0.29", "jinja2>=3.1"]
+api = ["fastapi>=0.110", "uvicorn>=0.29", "jinja2>=3.1", "python-multipart>=0.0.9"]
 evals = ["ragas>=0.2", "langsmith>=0.1"]
 dev = [
     "pytest>=8.0",
