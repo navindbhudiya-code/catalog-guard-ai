@@ -184,3 +184,16 @@ Refinements (TDD):
 - Magento: `PythonService.generateProposals`; `Review/Generate` controller (JSON + redirect); a **"Generate Fixes"** button and **"Open Review Queue"** link on the audit page; clicking Generate runs `/propose` then redirects to the Review grid.
 
 **Verified live:** audit page → Generate Fixes → 4,080 proposals generated → auto-redirect to the populated Review queue. `make verify` green (131 tests, 100% core). Screenshot 13 added.
+
+---
+
+## v0.1.3 — Apply Approved + Rollback admin actions — 2026-06-27
+
+**Built** the write-back step as admin actions (paired so it stays reversible):
+- Core: `RollbackJournal.latest_batch()` (TDD).
+- Python: `POST /apply` (apply APPROVED via the configured `CatalogWriter` + journal, mark APPLIED) and `POST /rollback` (revert latest batch). `create_app` gains `writer` + `journal_db`; `serve_demo` wires a real `MagentoClient` from `.env`.
+- Magento: `PythonService.applyApproved/rollbackLast`; `Review/Apply` + `Review/Rollback` controllers (JSON); an **Apply Approved** / **Rollback Last Batch** action bar above the Review grid.
+
+**Tested:** `/apply`→`/rollback` round-trip proven offline via integration tests (fake writer: applies the value, journals the previous, rollback restores). `make verify` green (133 tests + integration, 100% core).
+
+**Note:** the live admin browser test + screenshot is pending — `app.demo.test`'s HTTPS frontend went unreachable (Warden containers up, traefik/varnish not responding); environment issue, not code. The `.env` Magento token was blanked during a failed re-mint while the store was down and must be re-minted once it recovers.

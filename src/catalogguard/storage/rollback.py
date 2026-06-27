@@ -79,6 +79,13 @@ class RollbackJournal:
             for row in rows
         ]
 
+    def latest_batch(self) -> str | None:
+        """Return the most recent batch id that still has un-reverted entries."""
+        row = self._conn.execute(
+            "SELECT batch_id FROM journal WHERE reverted = 0 ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+        return None if row is None else str(row["batch_id"])
+
     def mark_reverted(self, batch_id: str) -> None:
         """Mark every entry in a batch as reverted."""
         self._conn.execute("UPDATE journal SET reverted = 1 WHERE batch_id = ?", (batch_id,))

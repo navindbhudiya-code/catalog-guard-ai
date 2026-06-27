@@ -4,6 +4,9 @@
     <update handle="styles"/>
     <body>
         <referenceContainer name="content">
+            <block class="NavinDBhudiya\CatalogGuard\Block\Adminhtml\Review\Actions"
+                   name="catalogguard.review.actions"
+                   template="NavinDBhudiya_CatalogGuard::review/actions.phtml"/>
             <uiComponent name="catalogguard_review_listing"/>
         </referenceContainer>
     </body>

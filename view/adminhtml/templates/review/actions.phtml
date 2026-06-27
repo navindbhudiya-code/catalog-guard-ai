@@ -1,0 +1,38 @@
+<?php
+/**
+ * @var \NavinDBhudiya\CatalogGuard\Block\Adminhtml\Review\Actions $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div class="catalogguard-review-actions" style="margin: 0 0 12px;">
+    <button id="catalogguard-apply" type="button" class="action-primary"
+            data-url="<?= $escaper->escapeUrl($block->getApplyUrl()) ?>">
+        <span><?= $escaper->escapeHtml(__('Apply Approved')) ?></span>
+    </button>
+    &nbsp;
+    <button id="catalogguard-rollback" type="button" class="action-secondary"
+            data-url="<?= $escaper->escapeUrl($block->getRollbackUrl()) ?>">
+        <span><?= $escaper->escapeHtml(__('Rollback Last Batch')) ?></span>
+    </button>
+    <span class="catalogguard-hint" style="margin-left:10px; color:#777;">
+        <?= $escaper->escapeHtml(__('Apply writes APPROVED fixes to the store; every change is journaled for rollback.')) ?>
+    </span>
+</div>
+
+<script>
+require(['jquery'], function ($) {
+    function act(btn, busyLabel) {
+        var url = btn.data('url'), label = btn.find('span').text();
+        btn.prop('disabled', true).find('span').text(busyLabel);
+        $.post(url, {form_key: window.FORM_KEY}, function (res) {
+            alert(res.message || (res.success ? 'Done' : 'Failed'));
+            window.location.reload();
+        }).fail(function () {
+            alert('Request failed');
+            btn.prop('disabled', false).find('span').text(label);
+        });
+    }
+    $('#catalogguard-apply').on('click', function () { act($(this), 'Applying…'); });
+    $('#catalogguard-rollback').on('click', function () { act($(this), 'Rolling back…'); });
+});
+</script>

@@ -66,6 +66,19 @@ def test_revert_restores_previous_values_and_marks_reverted() -> None:
     journal.close()
 
 
+def test_latest_batch_returns_most_recent_unreverted_batch() -> None:
+    journal = RollbackJournal()
+    assert journal.latest_batch() is None
+
+    journal.record("b1", "A", "name", old_value="a", new_value="b", proposal_id="p1")
+    journal.record("b2", "B", "name", old_value="c", new_value="d", proposal_id="p2")
+    assert journal.latest_batch() == "b2"
+
+    journal.mark_reverted("b2")
+    assert journal.latest_batch() == "b1"
+    journal.close()
+
+
 def test_journal_persists_across_reopen(tmp_path: Path) -> None:
     db = tmp_path / "journal.sqlite"
     journal = RollbackJournal(db)

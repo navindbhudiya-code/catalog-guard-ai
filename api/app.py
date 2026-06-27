@@ -14,6 +14,9 @@ from pathlib import Path
 from fastapi import Body, FastAPI, Form
 from fastapi.responses import HTMLResponse
 
+import uuid
+
+from catalogguard.agents.apply import ApplyAgent, CatalogWriter
 from catalogguard.agents.fix_proposal import FixProposalAgent
 from catalogguard.agents.registry import build_agents
 from catalogguard.graph.supervisor import Supervisor
@@ -23,6 +26,7 @@ from catalogguard.providers.heuristic import HeuristicProvider
 from catalogguard.reporting import build_report
 from catalogguard.storage.approval import ApprovalStore
 from catalogguard.storage.cache import ProductCache
+from catalogguard.storage.rollback import RollbackJournal
 
 
 class _NullLogger:
@@ -116,11 +120,14 @@ def create_app(
     reports_dir: str = "reports",
     store_url: str = "https://app.demo.test",
     provider: LLMProvider | None = None,
+    writer: CatalogWriter | None = None,
+    journal_db: str = "rollback.sqlite",
 ) -> FastAPI:
     """Build the review app bound to an approval store.
 
-    Also exposes ``/audit``, ``/propose`` and ``/report/latest`` consumed by the
-    Magento admin module (NavinDBhudiya\\CatalogGuard).
+    Also exposes ``/audit``, ``/propose``, ``/apply``, ``/rollback`` and
+    ``/report/latest`` consumed by the Magento admin module
+    (NavinDBhudiya\\CatalogGuard). ``writer`` enables apply/rollback against a store.
     """
     app = FastAPI(title="CatalogGuard Review")
     report_path = Path(reports_dir) / "report.json"
@@ -146,6 +153,35 @@ def create_app(
         store.clear()
         store.save_many(proposals)
         return {"generated": len(proposals), "issues": len(state.issues)}
+
+    @app.post("/apply")
+    def apply() -> dict[str, object]:
+        if writer is None:
+            return {"success": False, "message": "no catalog writer configured"}
+        approved = store.by_status(ProposalStatus.APPROVED)
+        batch_id = uuid.uuid4().hex[:8]
+        journal = RollbackJournal(journal_db)
+        try:
+            applied = ApplyAgent(writer, journal).apply(approved, batch_id=batch_id)
+        finally:
+            journal.close()
+        for proposal in applied:
+            store.set_status(proposal.id, ProposalStatus.APPLIED)
+        return {"success": True, "applied": len(applied), "batch_id": batch_id}
+
+    @app.post("/rollback")
+    def rollback() -> dict[str, object]:
+        if writer is None:
+            return {"success": False, "message": "no catalog writer configured"}
+        journal = RollbackJournal(journal_db)
+        try:
+            batch_id = journal.latest_batch()
+            if batch_id is None:
+                return {"success": True, "reverted": 0, "batch_id": None}
+            reverted = ApplyAgent(writer, journal).revert(batch_id)
+        finally:
+            journal.close()
+        return {"success": True, "reverted": reverted, "batch_id": batch_id}
 
     @app.post("/audit")
     def run_audit(payload: dict[str, str] = Body(default={})) -> dict[str, object]:  # noqa: B008

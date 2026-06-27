@@ -85,6 +85,43 @@ class PythonService
         return (int) ($this->decode($this->curl->getBody())['generated'] ?? 0);
     }
 
+    /**
+     * Apply all APPROVED fixes to the store (journaled for rollback).
+     *
+     * @return array{success: bool, applied: int, batch: string, message: string}
+     */
+    public function applyApproved(): array
+    {
+        $this->curl->addHeader('Content-Type', 'application/json');
+        $this->curl->post($this->getBaseUrl() . '/apply', '{}');
+        $data = $this->decode($this->curl->getBody());
+
+        return [
+            'success' => (bool) ($data['success'] ?? false),
+            'applied' => (int) ($data['applied'] ?? 0),
+            'batch' => (string) ($data['batch_id'] ?? ''),
+            'message' => (string) ($data['message'] ?? ''),
+        ];
+    }
+
+    /**
+     * Roll back the most recent applied batch.
+     *
+     * @return array{success: bool, reverted: int, message: string}
+     */
+    public function rollbackLast(): array
+    {
+        $this->curl->addHeader('Content-Type', 'application/json');
+        $this->curl->post($this->getBaseUrl() . '/rollback', '{}');
+        $data = $this->decode($this->curl->getBody());
+
+        return [
+            'success' => (bool) ($data['success'] ?? false),
+            'reverted' => (int) ($data['reverted'] ?? 0),
+            'message' => (string) ($data['message'] ?? ''),
+        ];
+    }
+
     public function approveProposal(string $id): bool
     {
         return $this->postAction('/api/proposals/' . rawurlencode($id) . '/approve');
