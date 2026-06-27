@@ -12,6 +12,15 @@ $issues = $block->getIssues();
                 data-url="<?= $escaper->escapeUrl($block->getRunUrl()) ?>">
             <span><?= $escaper->escapeHtml(__('Run Audit')) ?></span>
         </button>
+        &nbsp;
+        <button id="catalogguard-generate" type="button" class="action-secondary"
+                data-url="<?= $escaper->escapeUrl($block->getGenerateUrl()) ?>">
+            <span><?= $escaper->escapeHtml(__('Generate Fixes')) ?></span>
+        </button>
+        &nbsp;
+        <a href="<?= $escaper->escapeUrl($block->getReviewUrl()) ?>" class="action-default">
+            <?= $escaper->escapeHtml(__('Open Review Queue')) ?>
+        </a>
     </p>
 
     <?php if (!empty($report)): ?>
@@ -65,6 +74,19 @@ require(['jquery'], function ($) {
                 window.location.reload();
             } else {
                 alert(res.message || 'Audit failed');
+            }
+        });
+    });
+
+    $('#catalogguard-generate').on('click', function () {
+        var btn = $(this), url = btn.data('url');
+        btn.prop('disabled', true).find('span').text('Generating…');
+        $.post(url, {form_key: window.FORM_KEY}, function (res) {
+            if (res.success && res.redirect) {
+                window.location.href = res.redirect;
+            } else {
+                alert(res.message || 'Generate failed');
+                btn.prop('disabled', false).find('span').text('Generate Fixes');
             }
         });
     });

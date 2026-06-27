@@ -14,9 +14,12 @@ from pathlib import Path
 from fastapi import Body, FastAPI, Form
 from fastapi.responses import HTMLResponse
 
+from catalogguard.agents.fix_proposal import FixProposalAgent
 from catalogguard.agents.registry import build_agents
 from catalogguard.graph.supervisor import Supervisor
 from catalogguard.models import AuditConfig, GraphState, ProposalStatus
+from catalogguard.providers.base import LLMProvider
+from catalogguard.providers.heuristic import HeuristicProvider
 from catalogguard.reporting import build_report
 from catalogguard.storage.approval import ApprovalStore
 from catalogguard.storage.cache import ProductCache
@@ -112,14 +115,37 @@ def create_app(
     cache_db: str = "catalogguard.sqlite",
     reports_dir: str = "reports",
     store_url: str = "https://app.demo.test",
+    provider: LLMProvider | None = None,
 ) -> FastAPI:
     """Build the review app bound to an approval store.
 
-    Also exposes ``/audit`` and ``/report/latest`` consumed by the Magento admin
-    module (NavinDBhudiya\\CatalogGuard).
+    Also exposes ``/audit``, ``/propose`` and ``/report/latest`` consumed by the
+    Magento admin module (NavinDBhudiya\\CatalogGuard).
     """
     app = FastAPI(title="CatalogGuard Review")
     report_path = Path(reports_dir) / "report.json"
+    fix_provider: LLMProvider = provider or HeuristicProvider()
+
+    def _load_products() -> list:
+        cache = ProductCache(cache_db)
+        try:
+            return cache.all()
+        finally:
+            cache.close()
+
+    @app.post("/propose")
+    def propose(payload: dict[str, str] = Body(default={})) -> dict[str, object]:  # noqa: B008
+        checks_raw = payload.get("checks", "sanity,attributes,duplicates,seo")
+        aliases = {"attributes": "attribute", "duplicates": "duplicate"}
+        checks = [aliases.get(c.strip(), c.strip()) for c in checks_raw.split(",") if c.strip()]
+        products = _load_products()
+        config = AuditConfig(store_url=store_url, checks=checks)
+        state = GraphState(config=config, products=products)
+        Supervisor(build_agents(config, checks), _NullLogger()).run(state)
+        proposals = FixProposalAgent(config, fix_provider).propose(state.issues, products)
+        store.clear()
+        store.save_many(proposals)
+        return {"generated": len(proposals), "issues": len(state.issues)}
 
     @app.post("/audit")
     def run_audit(payload: dict[str, str] = Body(default={})) -> dict[str, object]:  # noqa: B008

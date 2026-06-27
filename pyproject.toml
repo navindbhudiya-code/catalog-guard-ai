@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "catalogguard"
-version = "0.1.1"
+version = "0.1.2"
 description = "CatalogGuard AI — LangGraph multi-agent Magento 2 catalog auditor with human-in-the-loop fixes."
 readme = "README.md"
 requires-python = ">=3.11"

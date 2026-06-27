@@ -24,4 +24,8 @@ def get_provider(settings: Settings) -> LLMProvider:
         return BedrockProvider()
     if choice == "stub":
         return StubProvider()
+    if choice == "heuristic":
+        from catalogguard.providers.heuristic import HeuristicProvider
+
+        return HeuristicProvider()
     raise ValueError(f"unknown LLM provider: {settings.llm_provider}")

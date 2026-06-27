@@ -71,6 +71,20 @@ class PythonService
         ];
     }
 
+    /**
+     * Run an audit and generate fix proposals into the review queue.
+     */
+    public function generateProposals(string $checks = 'sanity,attributes,duplicates,seo'): int
+    {
+        $this->curl->addHeader('Content-Type', 'application/json');
+        $this->curl->post(
+            $this->getBaseUrl() . '/propose',
+            $this->json->serialize(['checks' => $checks])
+        );
+
+        return (int) ($this->decode($this->curl->getBody())['generated'] ?? 0);
+    }
+
     public function approveProposal(string $id): bool
     {
         return $this->postAction('/api/proposals/' . rawurlencode($id) . '/approve');

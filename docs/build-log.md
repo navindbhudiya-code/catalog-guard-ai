@@ -173,3 +173,14 @@ Refinements (TDD):
 - Approve-in-queue-only: write-back stays the explicit, journaled `apply` step.
 
 **Verified live (app.demo.test):** grid renders 4,080 proposals (204 pages) with real generated meta values; **Actions → Approve** on 2 rows → "2 fix proposal(s) approved", count 4,080 → 4,078. `make verify` green (125 tests, 100% core). Screenshots 11–12 in `.claude/CatalogGuard-demo/`.
+
+---
+
+## v0.1.2 — Wire Run Audit ↔ Review Fixes — 2026-06-27
+
+**Built** a one-click audit→fixes→review flow inside the admin:
+- Core: `HeuristicProvider` (offline, deterministic meta/description generation — tested) + factory support; `ApprovalStore.clear()`.
+- Python: `POST /propose` (clear → audit → FixProposalAgent → save) using the heuristic provider by default.
+- Magento: `PythonService.generateProposals`; `Review/Generate` controller (JSON + redirect); a **"Generate Fixes"** button and **"Open Review Queue"** link on the audit page; clicking Generate runs `/propose` then redirects to the Review grid.
+
+**Verified live:** audit page → Generate Fixes → 4,080 proposals generated → auto-redirect to the populated Review queue. `make verify` green (131 tests, 100% core). Screenshot 13 added.

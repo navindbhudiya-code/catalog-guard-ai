@@ -48,4 +48,14 @@ class Report extends Template
     {
         return $this->getUrl('catalogguard/audit/run');
     }
+
+    public function getGenerateUrl(): string
+    {
+        return $this->getUrl('catalogguard/review/generate');
+    }
+
+    public function getReviewUrl(): string
+    {
+        return $this->getUrl('catalogguard/review/index');
+    }
 }

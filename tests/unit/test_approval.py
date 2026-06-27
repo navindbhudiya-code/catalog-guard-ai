@@ -61,6 +61,16 @@ def test_bulk_approve_by_confidence_threshold() -> None:
     store.close()
 
 
+def test_clear_removes_all_proposals() -> None:
+    store = ApprovalStore()
+    store.save_many([_proposal("p1", 0.9), _proposal("p2", 0.5)])
+
+    store.clear()
+
+    assert store.by_status(ProposalStatus.PENDING) == []
+    store.close()
+
+
 def test_set_status_and_edit_are_noops_for_unknown_id() -> None:
     store = ApprovalStore()
     store.set_status("ghost", ProposalStatus.APPROVED)  # must not raise

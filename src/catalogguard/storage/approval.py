@@ -76,6 +76,11 @@ class ApprovalStore:
                 approved += 1
         return approved
 
+    def clear(self) -> None:
+        """Remove all proposals (used when regenerating the queue from a fresh audit)."""
+        self._conn.execute("DELETE FROM proposals")
+        self._conn.commit()
+
     def close(self) -> None:
         """Close the underlying connection."""
         self._conn.close()
